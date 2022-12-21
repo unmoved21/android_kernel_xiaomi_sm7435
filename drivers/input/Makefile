@@ -30,6 +30,7 @@ obj-$(CONFIG_INPUT_APMPOWER)	+= apm-power.o
 
 obj-$(CONFIG_RMI4_CORE)		+= rmi4/
 obj-$(CONFIG_INPUT_FINGERPRINT) += fingerprint/
+obj-$(CONFIG_STMVL53L5)		+= stmvl53l5/
 
 ifeq ($(TARGET_PRODUCT), garnet)
     KBUILD_CPPFLAGS += -DCONFIG_TARGET_PRODUCT_GARNET

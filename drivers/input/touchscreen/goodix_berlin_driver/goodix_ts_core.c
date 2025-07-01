@@ -34,6 +34,9 @@ struct goodix_ts_core *ts_core;
 #define GOODIX_DEFAULT_CFG_NAME		"goodix_cfg_group.cfg"
 #define GOOIDX_INPUT_PHYS			"goodix_ts/input0"
 
+#define LCD_ID_DET1 (370 + 95)
+#define LCD_ID_DET2 (370 + 101)
+
 #if defined(CONFIG_DRM)
 static struct drm_panel *active_panel;
 static void goodix_panel_notifier_callback(enum panel_event_notifier_tag tag,
@@ -2627,15 +2630,43 @@ static int __init goodix_ts_core_init(void)
 {
 	int ret = 0;
 
-	ts_info("Core layer init:%s", GOODIX_DRIVER_VERSION);
+	struct gpio_desc *desc1, *desc2;
+    int gpio_det1, gpio_det2;
 
-	ret = goodix_spi_bus_init();
-	ret |= goodix_i2c_bus_init();
-	if (ret) {
-		ts_err("failed add bus driver");
-		return ret;
-	}
-	return platform_driver_register(&goodix_ts_driver);
+    // --- LCD_ID_DET1 ---
+    desc1 = gpio_to_desc(LCD_ID_DET1);
+    if (!desc1) {
+        ts_err("Failed to get GPIO descriptor for LCD_ID_DET1\n");
+        return -ENODEV;
+    }
+    gpiod_direction_input(desc1);
+    gpio_det1 = gpiod_get_raw_value(desc1);
+
+	// --- LCD_ID_DET2 ---
+    desc2 = gpio_to_desc(LCD_ID_DET2);
+    if (!desc2) {
+	    ts_err("Failed to get GPIO descriptor for LCD_ID_DET2\n");
+	    return -ENODEV;
+    }
+    gpiod_direction_input(desc2);
+    gpio_det2 = gpiod_get_raw_value(desc2);
+
+    ts_info("gpio_det1=%d, gpio_det2=%u\n", gpio_det1, gpio_det2);
+    if (gpio_det1 && !gpio_det2) {
+        ts_info("Core layer init:%s", GOODIX_DRIVER_VERSION);
+
+		ret = goodix_spi_bus_init();
+		ret |= goodix_i2c_bus_init();
+		if (ret) {
+			ts_err("failed add bus driver");
+			return ret;
+		}
+		return platform_driver_register(&goodix_ts_driver);
+    } else {
+        ts_err("TP is not goodix!");
+        ret = 0;
+    }
+    return ret;
 }
 
 static void __exit goodix_ts_core_exit(void)

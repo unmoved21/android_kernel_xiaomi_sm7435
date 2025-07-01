@@ -48,6 +48,10 @@
 
 #define SPI_DUMMY_BYTE 3
 #define SPI_HEADER_LENGTH 6 /*CRC*/
+
+#define LCD_ID_DET1 (370 + 95)
+#define LCD_ID_DET2 (370 + 101)
+
 /*****************************************************************************
 * Private enumerations, structures and unions using typedef
 *****************************************************************************/
@@ -610,14 +614,43 @@ static struct spi_driver fts_ts_spi_driver = {
 static int __init fts_ts_spi_init(void)
 {
 	int ret = 0;
+	struct gpio_desc *desc1, *desc2;
+	int gpio_det1, gpio_det2;
 
 	FTS_FUNC_ENTER();
-	ret = spi_register_driver(&fts_ts_spi_driver);
-	if (ret < 0) {
-		FTS_ERROR("Focaltech touch screen driver init failed!");
+
+	// --- LCD_ID_DET1 ---
+	desc1 = gpio_to_desc(LCD_ID_DET1);
+	if (!desc1) {
+		FTS_ERROR("Failed to get GPIO descriptor for LCD_ID_DET1\n");
+		return -ENODEV;
 	}
-	FTS_FUNC_EXIT();
-	return ret;
+    gpiod_direction_input(desc1);
+    gpio_det1 = gpiod_get_raw_value(desc1);
+
+	// --- LCD_ID_DET2 ---
+    desc2 = gpio_to_desc(LCD_ID_DET2);
+    if (!desc2) {
+	    FTS_ERROR("Failed to get GPIO descriptor for LCD_ID_DET2\n");
+	    return -ENODEV;
+    }
+    gpiod_direction_input(desc2);
+    gpio_det2 = gpiod_get_raw_value(desc2);
+
+    FTS_INFO("gpio_det1=%d, gpio_det2=%u\n", gpio_det1, gpio_det2);
+
+    if ((!gpio_det1 && !gpio_det2) || (!gpio_det1 && gpio_det2)) {
+	    ret = spi_register_driver(&fts_ts_spi_driver);
+	    if (ret < 0) {
+		    FTS_ERROR("Focaltech touch screen driver init failed!");
+	    }
+    } else {
+	    FTS_ERROR("TP is not Focaltech!");
+	    ret = 0;
+    }
+
+    FTS_FUNC_EXIT();
+    return ret;
 }
 
 static void __exit fts_ts_spi_exit(void)

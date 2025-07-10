@@ -2631,30 +2631,30 @@ static int __init goodix_ts_core_init(void)
 	int ret = 0;
 
 	struct gpio_desc *desc1, *desc2;
-    int gpio_det1, gpio_det2;
+    int gpio_det1 = -1, gpio_det2 = -1;
 
     // --- LCD_ID_DET1 ---
     desc1 = gpio_to_desc(LCD_ID_DET1);
     if (!desc1) {
-        ts_err("Failed to get GPIO descriptor for LCD_ID_DET1\n");
-        return -ENODEV;
-    }
+        ts_info("Failed to get GPIO descriptor for LCD_ID_DET1\n");
+} else {
     gpiod_direction_input(desc1);
     gpio_det1 = gpiod_get_raw_value(desc1);
-
+}
 	// --- LCD_ID_DET2 ---
     desc2 = gpio_to_desc(LCD_ID_DET2);
     if (!desc2) {
-	    ts_err("Failed to get GPIO descriptor for LCD_ID_DET2\n");
-	    return -ENODEV;
-    }
+	    ts_info("Failed to get GPIO descriptor for LCD_ID_DET2\n");
+} else {
     gpiod_direction_input(desc2);
     gpio_det2 = gpiod_get_raw_value(desc2);
+}
 
-    ts_info("gpio_det1=%d, gpio_det2=%u\n", gpio_det1, gpio_det2);
-    if (gpio_det1 && !gpio_det2) {
+    ts_info("gpio_det1=%d, gpio_det2=%d\n", gpio_det1, gpio_det2);
+
+msleep(50);
+
         ts_info("Core layer init:%s", GOODIX_DRIVER_VERSION);
-
 		ret = goodix_spi_bus_init();
 		ret |= goodix_i2c_bus_init();
 		if (ret) {
@@ -2662,11 +2662,6 @@ static int __init goodix_ts_core_init(void)
 			return ret;
 		}
 		return platform_driver_register(&goodix_ts_driver);
-    } else {
-        ts_err("TP is not goodix!");
-        ret = 0;
-    }
-    return ret;
 }
 
 static void __exit goodix_ts_core_exit(void)

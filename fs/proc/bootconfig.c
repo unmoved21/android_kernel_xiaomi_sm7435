@@ -138,8 +138,8 @@ static int __init proc_boot_config_init(void)
 		} else {
 			memcpy(sku_quote_start, hwc_value, sku_old_len);
 		}
-#endif
 	skip:;
+#endif
 	}
 
 	proc_create_single("bootconfig", 0, NULL, boot_config_proc_show);

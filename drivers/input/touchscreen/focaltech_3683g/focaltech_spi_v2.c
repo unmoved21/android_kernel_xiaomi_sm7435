@@ -478,6 +478,10 @@ static int fts_ts_probe(struct spi_device *spi)
 	struct fts_ts_data *ts_data = NULL;
 
 	FTS_INFO("Touch Screen(SPI-2 BUS) driver prboe...");
+	ret = fts_check_ts_id_gpio(&spi->dev);
+	if (ret)
+		return ret;
+
 	spi->mode = SPI_MODE_0;
 	spi->bits_per_word = 8;
 	ret = spi_setup(spi);

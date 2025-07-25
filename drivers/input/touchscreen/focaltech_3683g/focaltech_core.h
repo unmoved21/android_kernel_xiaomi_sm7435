@@ -368,6 +368,8 @@ int fts_hid2std(int mode);
 int fts_ts_probe_entry(struct fts_ts_data *ts_data);
 int fts_ts_remove_entry(struct fts_ts_data *ts_data);
 
+int fts_check_ts_id_gpio(struct device *dev);
+
 /* Gesture functions */
 int fts_gesture_init(struct fts_ts_data *ts_data);
 int fts_gesture_exit(struct fts_ts_data *ts_data);
